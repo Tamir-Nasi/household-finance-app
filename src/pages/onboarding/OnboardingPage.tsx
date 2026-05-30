@@ -6,6 +6,7 @@ import { DEFAULT_CATEGORIES } from '@/hooks/useCategories'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
+import type { Profile } from '@/types'
 
 export function OnboardingPage() {
   const navigate  = useNavigate()
@@ -20,38 +21,19 @@ export function OnboardingPage() {
     if (!user) return
     setLoading(true)
     try {
-      // 1. Create household
-      const { data: hh, error: hhErr } = await supabase
-        .from('households')
-        .insert({ name: householdName.trim() || `משפחת ${user.user_metadata?.full_name ?? ''}` })
-        .select()
-        .single()
-      if (hhErr) throw new Error(`יצירת משק בית נכשלה: ${hhErr.message}`)
+      const name = householdName.trim() || `משפחת ${user.user_metadata?.full_name ?? ''}`
+      const bal  = balance.trim() ? Number(balance) : null
 
-      // 2. Link profile → household
-      const { data: prof, error: profErr } = await supabase
-        .from('profiles')
-        .update({ household_id: hh.id, onboarding_completed: true, full_name: user.user_metadata?.full_name ?? null })
-        .eq('id', user.id)
-        .select()
-        .single()
-      if (profErr) throw new Error(`עדכון פרופיל נכשל: ${profErr.message}`)
+      const { data: prof, error } = await supabase.rpc('onboard_household', {
+        p_name:      name,
+        p_balance:   bal,
+        p_full_name: user.user_metadata?.full_name ?? null,
+      })
 
-      // 3. Seed default categories
-      const { error: catErr } = await supabase
-        .from('categories')
-        .insert(DEFAULT_CATEGORIES.map((c) => ({ ...c, household_id: hh.id })))
-      if (catErr) throw new Error(`יצירת קטגוריות נכשלה: ${catErr.message}`)
+      if (error) throw new Error(`הרשמה נכשלה: ${error.message}`)
+      if (!prof)  throw new Error('לא התקבל פרופיל מהשרת')
 
-      // 4. Opening balance (optional)
-      if (balance.trim()) {
-        const { error: balErr } = await supabase
-          .from('account_balance')
-          .insert({ household_id: hh.id, balance: Number(balance), updated_by: user.id })
-        if (balErr) throw new Error(`שמירת יתרה נכשלה: ${balErr.message}`)
-      }
-
-      setProfile(prof)
+      setProfile(prof as Profile)
       navigate('/')
     } catch (err: unknown) {
       toast((err as Error).message, 'error')
