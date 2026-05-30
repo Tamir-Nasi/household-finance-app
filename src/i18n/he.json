@@ -1,0 +1,150 @@
+{
+  "app": { "name": "ניהול כספים ביתי" },
+
+  "auth": {
+    "login": "כניסה",
+    "register": "הרשמה",
+    "logout": "יציאה",
+    "email": "דואר אלקטרוני",
+    "password": "סיסמה",
+    "fullName": "שם מלא",
+    "forgotPassword": "שכחתי סיסמה",
+    "resetPassword": "איפוס סיסמה",
+    "noAccount": "אין לך חשבון?",
+    "hasAccount": "כבר יש לך חשבון?",
+    "loginBtn": "כנס",
+    "registerBtn": "הירשם",
+    "sendResetLink": "שלח קישור לאיפוס"
+  },
+
+  "nav": {
+    "home": "הוצאה",
+    "dashboard": "סיכום",
+    "transactions": "עסקאות",
+    "settings": "הגדרות"
+  },
+
+  "expense": {
+    "title": "הוצאה חדשה",
+    "amount": "סכום",
+    "category": "קטגוריה",
+    "note": "הערה (אופציונלי)",
+    "date": "תאריך",
+    "add": "הוסף הוצאה",
+    "success": "ההוצאה נוספה בהצלחה",
+    "chooseCategory": "בחר קטגוריה"
+  },
+
+  "dashboard": {
+    "title": "סיכום חודשי",
+    "balance": "יתרה נוכחית",
+    "savings": "חיסכון חודשי",
+    "savingsActual": "חיסכון בפועל",
+    "savingsExpected": "חיסכון צפוי",
+    "savingsProjected": "חיסכון חזוי עד סוף החודש",
+    "income": "הכנסות",
+    "fixedExpenses": "הוצאות קבועות",
+    "dynamicExpenses": "הוצאות משתנות",
+    "recentTransactions": "עסקאות אחרונות",
+    "daysLeft": "ימים נותרו בחודש",
+    "formula": "{{income}} הכנסות − {{fixed}} קבועות − {{dynamic}} משתנות = {{savings}} חיסכון"
+  },
+
+  "transactions": {
+    "title": "עסקאות",
+    "all": "הכל",
+    "mine": "שלי",
+    "partner": "בן/בת זוג",
+    "empty": "אין עסקאות בחודש זה",
+    "edit": "ערוך",
+    "delete": "מחק",
+    "confirmDelete": "האם למחוק הוצאה זו?"
+  },
+
+  "income": {
+    "title": "הכנסות ומשכורות",
+    "add": "הוסף משכורת",
+    "label": "שם / תיאור",
+    "amount": "סכום",
+    "dayOfMonth": "יום תשלום בחודש",
+    "active": "פעיל",
+    "empty": "לא הוגדרו משכורות עדיין"
+  },
+
+  "fixed": {
+    "title": "הוצאות קבועות",
+    "add": "הוסף הוצאה קבועה",
+    "label": "שם / תיאור",
+    "amount": "סכום",
+    "dayOfMonth": "יום חיוב בחודש",
+    "active": "פעיל",
+    "empty": "לא הוגדרו הוצאות קבועות עדיין"
+  },
+
+  "categories": {
+    "title": "קטגוריות",
+    "add": "הוסף קטגוריה",
+    "name": "שם",
+    "icon": "אייקון",
+    "color": "צבע",
+    "budget": "תקציב חודשי",
+    "default": "אחר"
+  },
+
+  "household": {
+    "title": "משק הבית",
+    "name": "שם משק הבית",
+    "members": "חברי משפחה",
+    "invite": "הזמן בן/בת זוג",
+    "inviteEmail": "אימייל להזמנה",
+    "sendInvite": "שלח הזמנה",
+    "inviteSent": "ההזמנה נשלחה",
+    "balance": "עדכן יתרה",
+    "balanceLabel": "יתרה בחשבון (₪)",
+    "updateBalance": "עדכן",
+    "pendingInvites": "הזמנות ממתינות",
+    "acceptInvite": "קבל הזמנה",
+    "rejectInvite": "דחה"
+  },
+
+  "onboarding": {
+    "welcome": "ברוך הבא!",
+    "subtitle": "בוא נגדיר את משק הבית שלך",
+    "step1": "יתרה התחלתית",
+    "step1Desc": "כמה כסף יש לך בחשבון כרגע?",
+    "step2": "משכורות",
+    "step2Desc": "הוסף את המשכורות שלך",
+    "step3": "הוצאות קבועות",
+    "step3Desc": "הוסף הוצאות קבועות (שכירות, חשמל וכו׳)",
+    "finish": "סיום",
+    "next": "הבא",
+    "skip": "דלג",
+    "balancePlaceholder": "לדוגמה: 15000"
+  },
+
+  "settings": {
+    "title": "הגדרות",
+    "income": "הכנסות",
+    "fixed": "הוצאות קבועות",
+    "categories": "קטגוריות",
+    "household": "משק הבית",
+    "profile": "פרופיל"
+  },
+
+  "common": {
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "add": "הוסף",
+    "close": "סגור",
+    "loading": "טוען...",
+    "error": "שגיאה",
+    "success": "הצלחה",
+    "confirm": "אישור",
+    "shekel": "₪",
+    "yes": "כן",
+    "no": "לא",
+    "noData": "אין נתונים"
+  }
+}
