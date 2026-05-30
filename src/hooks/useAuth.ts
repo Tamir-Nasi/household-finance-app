@@ -21,7 +21,7 @@ export function useAuthInit() {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadProfile(userId: string) {
     const { data } = await supabase
@@ -29,7 +29,21 @@ export function useAuthInit() {
       .select('*')
       .eq('id', userId)
       .single()
-    setProfile(data)
+
+    if (data) {
+      setProfile(data)
+      setLoading(false)
+      return
+    }
+
+    // Trigger may not have run yet — create the profile row manually
+    const { data: created } = await supabase
+      .from('profiles')
+      .upsert({ id: userId }, { onConflict: 'id' })
+      .select()
+      .single()
+
+    setProfile(created)
     setLoading(false)
   }
 }

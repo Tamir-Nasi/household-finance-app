@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
 import { CheckCircle, XCircle, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -11,12 +11,12 @@ const Ctx = createContext<ToastCtx>({ toast: () => {} })
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([])
-  let nextId = 0
+  const nextId = useRef(0)
 
   const toast = useCallback((message: string, type: ToastType = 'success') => {
-    const id = ++nextId
+    const id = ++nextId.current
     setItems((prev) => [...prev, { id, message, type }])
-    setTimeout(() => setItems((prev) => prev.filter((t) => t.id !== id)), 3500)
+    setTimeout(() => setItems((prev) => prev.filter((t) => t.id !== id)), 4000)
   }, [])
 
   const remove = (id: number) => setItems((prev) => prev.filter((t) => t.id !== id))

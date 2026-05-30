@@ -5,6 +5,12 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 
+const ERROR_MAP: Record<string, string> = {
+  'Invalid login credentials':  'אימייל או סיסמה שגויים',
+  'Email not confirmed':        'נא לאמת את כתובת המייל לפני הכניסה — בדוק את תיבת הדואר שלך',
+  'Too many requests':          'יותר מדי ניסיונות — נסה שוב מאוחר יותר',
+}
+
 export function LoginPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -17,7 +23,10 @@ export function LoginPage() {
     setLoading(true)
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
-    if (error) { toast(error.message, 'error'); return }
+    if (error) {
+      toast(ERROR_MAP[error.message] ?? error.message, 'error')
+      return
+    }
     navigate('/')
   }
 

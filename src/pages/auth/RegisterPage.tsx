@@ -1,31 +1,56 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 
 export function RegisterPage() {
-  const navigate = useNavigate()
   const { toast } = useToast()
   const [fullName, setFullName] = useState('')
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading]   = useState(false)
+  const [done, setDone]         = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName } },
     })
     setLoading(false)
-    if (error) { toast(error.message, 'error'); return }
-    toast('נרשמת בהצלחה! נא לאמת את המייל שלך.')
-    navigate('/login')
+
+    if (error) {
+      const msgs: Record<string, string> = {
+        'User already registered': 'כתובת המייל כבר רשומה במערכת',
+        'Password should be at least 6 characters': 'הסיסמה חייבת להכיל לפחות 6 תווים',
+      }
+      toast(msgs[error.message] ?? error.message, 'error')
+      return
+    }
+
+    // Email confirmation disabled → session created immediately, onAuthStateChange handles redirect
+    if (data.session) return
+
+    // Email confirmation required → show "check your email" screen
+    setDone(true)
   }
+
+  if (done) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary-50 to-white px-6 text-center">
+      <div className="text-6xl mb-4">📧</div>
+      <h2 className="text-2xl font-bold text-slate-900 mb-2">בדוק את המייל שלך</h2>
+      <p className="text-slate-500 mb-2">שלחנו קישור אימות לכתובת:</p>
+      <p className="font-semibold text-slate-800 mb-6">{email}</p>
+      <p className="text-sm text-slate-400 mb-8">לאחר לחיצה על הקישור תועבר ישירות לאפליקציה</p>
+      <Link to="/login" className="text-primary-600 font-medium hover:underline text-sm">
+        חזרה לכניסה
+      </Link>
+    </div>
+  )
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary-50 to-white px-6">

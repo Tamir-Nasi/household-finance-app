@@ -24,11 +24,16 @@ function AuthGate() {
   useAuthInit()
   const { user, profile, loading } = useAuthStore()
 
-  if (loading) return (
+  const spinner = (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-primary-400 border-t-transparent rounded-full animate-spin" />
     </div>
   )
+
+  if (loading) return spinner
+
+  // User is authenticated but profile row not yet loaded (trigger race) — show spinner
+  if (user && !profile) return spinner
 
   return (
     <Routes>
