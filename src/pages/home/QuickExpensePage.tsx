@@ -6,14 +6,14 @@ import { useMonthSummary } from '@/hooks/useMonthSummary'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { formatILS, today } from '@/lib/utils'
-import { Delete } from 'lucide-react'
+import { Delete, Settings } from 'lucide-react'
 
 const NUMPAD = ['7','8','9','4','5','6','1','2','3','','0','⌫']
 
 export function QuickExpensePage() {
   const navigate    = useNavigate()
   const { toast }   = useToast()
-  const { data: categories } = useCategories()
+  const { data: categories, isLoading: catsLoading } = useCategories()
   const addTx       = useAddTransaction()
   const now         = new Date()
   const { data: summary } = useMonthSummary(now.getFullYear(), now.getMonth() + 1)
@@ -21,6 +21,8 @@ export function QuickExpensePage() {
   const [amount, setAmount]         = useState('')
   const [categoryId, setCategoryId] = useState<string | null>(null)
   const [note, setNote]             = useState('')
+
+  const dynamicCategories = (categories ?? []).filter((c) => !c.is_fixed)
 
   function pressNumpad(key: string) {
     if (key === '⌫') { setAmount((a) => a.slice(0, -1)); return }
@@ -35,7 +37,7 @@ export function QuickExpensePage() {
     if (!amount || Number(amount) <= 0) { toast('הכנס סכום תקין', 'error'); return }
     if (!categoryId) { toast('בחר קטגוריה', 'error'); return }
     await addTx.mutateAsync({ amount: Number(amount), category_id: categoryId, note, date: today() })
-    toast('ההוצאה נוספה בהצלחה ✓')
+    toast('ההוצאה נוספה ✓')
     setAmount('')
     setNote('')
     setCategoryId(null)
@@ -43,7 +45,7 @@ export function QuickExpensePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* Header bar */}
+      {/* Header */}
       <div className="bg-primary-600 text-white px-5 pt-12 pb-6 safe-top">
         <p className="text-primary-200 text-sm mb-1">חיסכון חודשי עד כה</p>
         <p className="text-3xl font-bold">
@@ -54,7 +56,7 @@ export function QuickExpensePage() {
         </p>
       </div>
 
-      <div className="flex-1 px-4 pt-4 flex flex-col gap-3">
+      <div className="flex-1 px-4 pt-4 flex flex-col gap-3 overflow-y-auto">
         {/* Amount display */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
           <p className="text-slate-400 text-sm mb-1">סכום הוצאה</p>
@@ -67,22 +69,41 @@ export function QuickExpensePage() {
         {/* Category grid */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3">
           <p className="text-xs font-medium text-slate-500 mb-2 px-1">קטגוריה</p>
-          <div className="grid grid-cols-4 gap-2">
-            {(categories ?? []).filter((c) => !c.is_fixed).map((cat) => (
+
+          {catsLoading && (
+            <p className="text-center text-slate-400 text-sm py-4">טוען קטגוריות...</p>
+          )}
+
+          {!catsLoading && dynamicCategories.length === 0 && (
+            <div className="text-center py-4">
+              <p className="text-sm text-slate-400 mb-2">אין קטגוריות עדיין</p>
               <button
-                key={cat.id}
-                onClick={() => setCategoryId(cat.id)}
-                className={`flex flex-col items-center gap-1 py-2 px-1 rounded-xl text-xs transition-all ${
-                  categoryId === cat.id
-                    ? 'ring-2 ring-primary-400 bg-primary-50'
-                    : 'hover:bg-slate-50'
-                }`}
+                onClick={() => navigate('/settings/categories')}
+                className="flex items-center gap-1 text-xs text-primary-600 mx-auto hover:underline"
               >
-                <span className="text-2xl">{cat.icon}</span>
-                <span className="text-slate-600 text-center leading-tight">{cat.name}</span>
+                <Settings size={12} /> הוסף קטגוריות בהגדרות
               </button>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {dynamicCategories.length > 0 && (
+            <div className="grid grid-cols-4 gap-2">
+              {dynamicCategories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setCategoryId(cat.id)}
+                  className={`flex flex-col items-center gap-1 py-2 px-1 rounded-xl text-xs transition-all ${
+                    categoryId === cat.id
+                      ? 'ring-2 ring-primary-400 bg-primary-50'
+                      : 'hover:bg-slate-50 active:bg-slate-100'
+                  }`}
+                >
+                  <span className="text-2xl">{cat.icon}</span>
+                  <span className="text-slate-600 text-center leading-tight">{cat.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Note */}
@@ -95,7 +116,7 @@ export function QuickExpensePage() {
       </div>
 
       {/* Numpad */}
-      <div className="bg-white border-t border-slate-100 px-4 pt-2 pb-2">
+      <div className="bg-white border-t border-slate-100 px-4 pt-2 pb-2 safe-bottom">
         <div className="grid grid-cols-3 gap-1.5 mb-2">
           {NUMPAD.map((key, i) => (
             <button
@@ -103,7 +124,7 @@ export function QuickExpensePage() {
               onClick={() => pressNumpad(key)}
               className={`h-14 rounded-xl text-xl font-medium transition-colors flex items-center justify-center ${
                 key === '⌫'
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300'
                   : key === ''
                   ? ''
                   : 'bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-900'
@@ -115,11 +136,12 @@ export function QuickExpensePage() {
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={() => navigate('/transactions')} className="flex-1">
-            ביטול
+            עסקאות
           </Button>
           <Button
             loading={addTx.isPending}
             onClick={handleSubmit}
+            disabled={dynamicCategories.length === 0}
             className="flex-2 flex-grow-[2]"
             size="lg"
           >

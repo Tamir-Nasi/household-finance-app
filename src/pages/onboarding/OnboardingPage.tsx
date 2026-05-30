@@ -23,32 +23,32 @@ export function OnboardingPage() {
       // 1. Create household
       const { data: hh, error: hhErr } = await supabase
         .from('households')
-        .insert({ name: householdName || 'משפחת ' + (user.user_metadata?.full_name ?? '') })
+        .insert({ name: householdName.trim() || `משפחת ${user.user_metadata?.full_name ?? ''}` })
         .select()
         .single()
-      if (hhErr) throw hhErr
+      if (hhErr) throw new Error(`יצירת משק בית נכשלה: ${hhErr.message}`)
 
-      // 2. Link profile to household
+      // 2. Link profile → household
       const { data: prof, error: profErr } = await supabase
         .from('profiles')
-        .update({ household_id: hh.id, onboarding_completed: true })
+        .update({ household_id: hh.id, onboarding_completed: true, full_name: user.user_metadata?.full_name ?? null })
         .eq('id', user.id)
         .select()
         .single()
-      if (profErr) throw profErr
+      if (profErr) throw new Error(`עדכון פרופיל נכשל: ${profErr.message}`)
 
       // 3. Seed default categories
-      await supabase.from('categories').insert(
-        DEFAULT_CATEGORIES.map((c) => ({ ...c, household_id: hh.id }))
-      )
+      const { error: catErr } = await supabase
+        .from('categories')
+        .insert(DEFAULT_CATEGORIES.map((c) => ({ ...c, household_id: hh.id })))
+      if (catErr) throw new Error(`יצירת קטגוריות נכשלה: ${catErr.message}`)
 
-      // 4. Set opening balance
-      if (balance) {
-        await supabase.from('account_balance').insert({
-          household_id: hh.id,
-          balance: Number(balance),
-          updated_by: user.id,
-        })
+      // 4. Opening balance (optional)
+      if (balance.trim()) {
+        const { error: balErr } = await supabase
+          .from('account_balance')
+          .insert({ household_id: hh.id, balance: Number(balance), updated_by: user.id })
+        if (balErr) throw new Error(`שמירת יתרה נכשלה: ${balErr.message}`)
       }
 
       setProfile(prof)
@@ -66,12 +66,9 @@ export function OnboardingPage() {
         {/* Steps indicator */}
         <div className="flex items-center justify-center gap-2 mb-8">
           {[1, 2].map((s) => (
-            <div
-              key={s}
-              className={`h-2 rounded-full transition-all ${
-                s === step ? 'w-8 bg-primary-500' : s < step ? 'w-2 bg-primary-300' : 'w-2 bg-slate-200'
-              }`}
-            />
+            <div key={s} className={`h-2 rounded-full transition-all ${
+              s === step ? 'w-8 bg-primary-500' : s < step ? 'w-2 bg-primary-300' : 'w-2 bg-slate-200'
+            }`} />
           ))}
         </div>
 
@@ -108,17 +105,19 @@ export function OnboardingPage() {
               <div className="text-4xl mb-2">✅</div>
               <h2 className="text-xl font-bold text-slate-900">הכל מוכן!</h2>
               <p className="text-slate-500 text-sm mt-1">
-                קטגוריות ברירת מחדל נוספו. תוכל לערוך אותן תמיד בהגדרות.
+                הקטגוריות הבאות יתווספו אוטומטית — תוכל לערוך אותן בהגדרות
               </p>
             </div>
-            <ul className="text-sm text-slate-600 flex flex-col gap-1">
-              {DEFAULT_CATEGORIES.slice(0, 6).map((c) => (
-                <li key={c.name} className="flex items-center gap-2">
-                  <span>{c.icon}</span> {c.name}
-                </li>
+
+            <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto">
+              {DEFAULT_CATEGORIES.map((c) => (
+                <div key={c.name} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
+                  <span className="text-lg">{c.icon}</span>
+                  <span className="text-sm text-slate-700">{c.name}</span>
+                </div>
               ))}
-              <li className="text-slate-400">...ועוד {DEFAULT_CATEGORIES.length - 6}</li>
-            </ul>
+            </div>
+
             <div className="flex gap-3">
               <Button variant="secondary" onClick={() => setStep(1)} className="flex-1">
                 חזרה

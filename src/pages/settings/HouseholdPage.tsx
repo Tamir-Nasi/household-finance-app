@@ -8,11 +8,13 @@ import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/Toast'
 import { formatILS } from '@/lib/utils'
 import type { AccountBalance, Invitation, Profile } from '@/types'
+import { useNavigate } from 'react-router-dom'
 
 export function HouseholdPage() {
+  const navigate   = useNavigate()
   const { toast }  = useToast()
   const qc         = useQueryClient()
-  const profile    = useAuthStore((s) => s.profile)
+  const { profile, setProfile } = useAuthStore()
   const householdId = profile?.household_id
 
   const [inviteEmail, setInviteEmail] = useState('')
@@ -53,8 +55,12 @@ export function HouseholdPage() {
     enabled: !!profile,
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser()
-      if (!userData.user) return []
-      const { data } = await supabase.from('invitations').select('*').eq('invited_email', userData.user.email!).eq('status', 'pending')
+      if (!userData.user?.email) return []
+      const { data } = await supabase
+        .from('invitations')
+        .select('*')
+        .eq('invited_email', userData.user.email)
+        .eq('status', 'pending')
       return data ?? []
     },
   })
@@ -62,9 +68,20 @@ export function HouseholdPage() {
   const acceptInvite = useMutation({
     mutationFn: async (invite: Invitation) => {
       await supabase.from('invitations').update({ status: 'accepted' }).eq('id', invite.id)
-      await supabase.from('profiles').update({ household_id: invite.household_id }).eq('id', profile!.id)
+      const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .update({ household_id: invite.household_id, role: 'member' })
+        .eq('id', profile!.id)
+        .select()
+        .single()
+      return updatedProfile
     },
-    onSuccess: () => { toast('הצטרפת למשק הבית!'); qc.invalidateQueries() },
+    onSuccess: (updatedProfile) => {
+      if (updatedProfile) setProfile(updatedProfile)
+      toast('הצטרפת למשק הבית!')
+      qc.invalidateQueries()
+      navigate('/')
+    },
   })
 
   async function sendInvite() {

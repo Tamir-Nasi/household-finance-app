@@ -36,10 +36,14 @@ export function useAuthInit() {
       return
     }
 
-    // Trigger may not have run yet — create the profile row manually
+    // Trigger may not have run — create the profile row with user metadata
+    const { data: { user } } = await supabase.auth.getUser()
     const { data: created } = await supabase
       .from('profiles')
-      .upsert({ id: userId }, { onConflict: 'id' })
+      .upsert({
+        id: userId,
+        full_name: user?.user_metadata?.full_name ?? null,
+      }, { onConflict: 'id' })
       .select()
       .single()
 
